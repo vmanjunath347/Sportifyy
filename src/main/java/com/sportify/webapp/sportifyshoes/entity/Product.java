@@ -28,15 +28,27 @@ public class Product {
 	@Column(name="gender")
 	private String gender;
 	
+	@Column(name="price")
+	private int price;
+	
 	public Product() {}
 
-	public Product(long productId, String brand, int size, long quantity, String gender) {
+	public Product(long productId, String brand, int size, long quantity, String gender,int price) {
 		super();
 		this.productId = productId;
 		this.brand = brand;
 		this.size = size;
 		this.quantity = quantity;
 		this.gender = gender;
+		this.price=price;
+	}
+	
+	public int getPrice() {
+		return price;
+	}
+	
+	public void setPrice(int price) {
+		this.price=price; 
 	}
 
 	public long getId() {

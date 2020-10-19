@@ -32,6 +32,9 @@ public class PurchaceDetails {
 	@Column(name="size")
 	private int size;
 	
+	@Column(name="price")
+	private int price;
+	
 	@Column(name="quantity")
 	private long quantity;
 	
@@ -44,7 +47,7 @@ public class PurchaceDetails {
 	public PurchaceDetails() {}
 	
 	public PurchaceDetails(long id, long userId, String userEmail, long productId, String brand, int size,
-			long quantity, String gender, Date date) {
+			long quantity, String gender, Date date, int price) {
 		super();
 		this.id = id;
 		this.userId = userId;
@@ -55,6 +58,15 @@ public class PurchaceDetails {
 		this.quantity = quantity;
 		this.gender = gender;
 		this.date = date;
+		this.price=price;
+	}
+	
+	public int getPrice() {
+		return price;
+	}
+	
+	public void setPrice(int price) {
+		this.price=price;
 	}
 
 	public long getId() {

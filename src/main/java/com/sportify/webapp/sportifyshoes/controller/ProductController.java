@@ -1,6 +1,7 @@
 package com.sportify.webapp.sportifyshoes.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sportify.webapp.sportifyshoes.entity.Product;
+import com.sportify.webapp.sportifyshoes.entity.PurchaceDetails;
 import com.sportify.webapp.sportifyshoes.entity.users;
 import com.sportify.webapp.sportifyshoes.exception.PassworWrongException;
 import com.sportify.webapp.sportifyshoes.exception.SpecifyQuantityException;
@@ -54,7 +56,7 @@ public class ProductController {
 		if(adminVarified==1) {
 			if(admin.getPassword().equals(password)) {
 				long quantity =  product.getQuantity();
-				if((quantity<1)) 
+				if((quantity<1)&&(product.getPrice()>0)) 
 					throw new SpecifyQuantityException("Quantity Cannot be null");
 				if(product.getBrand()==null)
 						throw new SpecifyQuantityException("Brand name cannot be empty");
@@ -208,12 +210,17 @@ public class ProductController {
 				}
 				if(adminVarified==1) {
 					if(admin.getPassword().equals(password)) {
-						if(product.getQuantity()>0) {
+						if((product.getQuantity()>=0) &&(product.getPrice()>=0)){
 							Product fetchedProduct=this.ProductRepository.findById(productId).orElseThrow(() -> new UserNotFound("Product Not found with id " + productId));
-							if(product.getQuantity()<1)
-								this.ProductRepository.delete(fetchedProduct);
-							else
+							if(product.getQuantity()<1) {
 								fetchedProduct.setQuantity(product.getQuantity());
+								this.ProductRepository.delete(fetchedProduct);
+							}
+							else {
+								fetchedProduct.setQuantity(product.getQuantity());
+								fetchedProduct.setPrice(product.getPrice());
+							}
+							this.ProductRepository.save(fetchedProduct);
 							return fetchedProduct;
 						}
 						else
@@ -225,5 +232,63 @@ public class ProductController {
 				else
 					throw new UserNotFound("Admin not found with email" + email);
 			}
+				
+				@GetMapping("/search/{gender}/{size}")
+				public List<Product> searchProduct (@PathVariable(value = "gender") String gender, @PathVariable(value = "size") int size){
+					List<Product> allProducts = this.ProductRepository.findAll();
+					if(allProducts.isEmpty())
+						throw new UserNotFound("There are no products in the shop");
 					
+					List<Product> foundProducts = new ArrayList<Product>();
+					for(int i=0; i<allProducts.size();i++) {
+						Product tempPrpduct = allProducts.get(i);
+						if((tempPrpduct.getSize()==size)&&(tempPrpduct.getGender().equals(gender))) 
+							foundProducts.add(tempPrpduct);
+					}
+						if(foundProducts.isEmpty())
+							throw new UserNotFound("Nothing found");
+						return foundProducts;
+				}
+				
+				//buy
+				@GetMapping("/{email}/{password}/buy/{productId}/{quantity}")
+	
+				public PurchaceDetails EditProduct (@PathVariable(value = "productId") long productId,@PathVariable(value = "quantity") long quantity,@PathVariable(value = "email") String email,@PathVariable(value = "password") String password) {
+				List<users> allusers = UserRepository.findAll();
+				short userFound=0;
+				users user = new users();
+				for(int i=0;i<allusers.size();i++) {
+					users tempUser=allusers.get(i);
+					if(email.equals(tempUser.getEmail())&&password.equals(tempUser.getPassword())) {
+						userFound=1;
+						user=tempUser;
+					}
+				}
+				if(userFound==0)
+					throw new UserNotFound("Error. check email and password");
+				Product buyProduct=this.ProductRepository.findById(productId).orElseThrow(() -> new UserNotFound("Product Not found with id " + productId));
+			    if(quantity>buyProduct.getQuantity())
+			    	throw new SpecifyQuantityException("Quantity should not be more than "+ buyProduct.getQuantity());
+				buyProduct.setQuantity(buyProduct.getQuantity()-quantity);
+				
+				if(buyProduct.getQuantity()==0)
+					this.ProductRepository.delete(buyProduct);
+				else
+					this.ProductRepository.save(buyProduct);
+				
+				PurchaceDetails cart =new PurchaceDetails();
+				cart.setBrand(buyProduct.getBrand());
+				cart.setGender(buyProduct.getGender());
+				cart.setPrice(buyProduct.getPrice());
+				cart.setProductId(buyProduct.getId());
+				cart.setQuantity(quantity);
+				cart.setSize(buyProduct.getSize());
+				cart.setUserEmail(email);
+				cart.setDate(new Date());
+				cart.setUserId(user.getId());
+				
+				PurchaseDetailsRepository.save(cart);
+				
+				return cart;
+			}
 }
