@@ -1,10 +1,14 @@
 package com.sportify.webapp.sportifyshoes.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +38,7 @@ public class ProductController {
 	
 		//admin adding product
 	@PostMapping("/{adminEmail}/{adminPassword}")
-	public  Product adduser(@RequestBody Product product, @PathVariable(value = "adminEmail") String email, @PathVariable(value = "adminPassword") String password) {
+	public  Product addProduct(@RequestBody Product product, @PathVariable(value = "adminEmail") String email, @PathVariable(value = "adminPassword") String password) {
 		
 		List<users> allusers = this.UserRepository.findAll();
 		short adminVarified=0;
@@ -80,5 +84,146 @@ public class ProductController {
 			throw new UserNotFound("Admin not found with email" + email);
 	}
 	
-
+	
+	//search product
+	@GetMapping("/{size}/{gender}")
+	public List<Product> searchProducts(@PathVariable(value = "size") int size,@PathVariable(value = "gender") String gender){
+		
+		List<Product> allProducts= this.ProductRepository.findAll();
+		
+		if(allProducts.isEmpty())
+			throw new UserNotFound("Store is empty");
+		List<Product> matchingProducts= new ArrayList<>();
+		for(int i=0; i<allProducts.size();i++) {
+			Product tempProduct=allProducts.get(i);
+			if((tempProduct.getGender().equals(gender))&&(tempProduct.getSize()==size)) 
+				matchingProducts.add(tempProduct);
+		}
+		if(matchingProducts.isEmpty())
+			throw new UserNotFound("No Results for this search");
+		
+		return matchingProducts;
+	}
+	
+	//admin get  all product
+		@GetMapping("/{adminEmail}/{adminPassword}/all")
+		public List<Product> getAllProduct(@PathVariable(value = "adminEmail") String email, @PathVariable(value = "adminPassword") String password) {
+			
+			List<users> allusers = this.UserRepository.findAll();
+			short adminVarified=0;
+			users admin = new users();
+			for(int i=0;i<allusers.size();i++) {
+				users tempUser=allusers.get(i);
+				if(email.equals(tempUser.getEmail())&& tempUser.getType().equals("admin")) {
+					adminVarified=1;
+					 admin=tempUser;
+					break;
+				}
+			}
+			if(adminVarified==1) {
+				if(admin.getPassword().equals(password)) {
+					List<Product> allProducts= this.ProductRepository.findAll();
+					if(allProducts.isEmpty())
+						throw new UserNotFound("Store is empty");
+					return this.ProductRepository.findAll();
+				}
+			else 
+				throw new PassworWrongException("Wrong password");
+		}
+		else
+			throw new UserNotFound("Admin not found with email" + email);
+}
+		
+		//admin get  all product
+				@GetMapping("/{adminEmail}/{adminPassword}/{id}")
+				public Product getProductByID(@PathVariable(value = "id") long id,@PathVariable(value = "adminEmail") String email, @PathVariable(value = "adminPassword") String password) {
+					
+					List<users> allusers = this.UserRepository.findAll();
+					short adminVarified=0;
+					users admin = new users();
+					for(int i=0;i<allusers.size();i++) {
+						users tempUser=allusers.get(i);
+						if(email.equals(tempUser.getEmail())&& tempUser.getType().equals("admin")) {
+							adminVarified=1;
+							 admin=tempUser;
+							break;
+						}
+					}
+					if(adminVarified==1) {
+						if(admin.getPassword().equals(password)) {
+							List<Product> allProducts= this.ProductRepository.findAll();
+							if(allProducts.isEmpty())
+								throw new UserNotFound("Store is empty");
+							return this.ProductRepository.findById(id)
+									.orElseThrow(() -> new UserNotFound("Product Not found with id " + id));
+						}
+					else 
+						throw new PassworWrongException("Wrong password");
+				}
+				else
+					throw new UserNotFound("Admin not found with email" + email);
+		}
+				
+				//admin deleteing user by id 
+				@DeleteMapping("/{email}/{password}/delete/{productId}")
+				public void deleteProduct (@PathVariable(value = "productId") long productId,@PathVariable(value = "email") String email,@PathVariable(value = "password") String password) {
+					List<users> allusers = UserRepository.findAll();
+					short adminVarified=0;
+					users admin = new users();
+					for(int i=0;i<allusers.size();i++) {
+						users tempUser=allusers.get(i);
+						if(email.equals(tempUser.getEmail())&& tempUser.getType().equals("admin")) {
+							adminVarified=1;
+							 admin=tempUser;
+							break;
+						}
+					}
+					if(adminVarified==1) {
+						if(admin.getPassword().equals(password)) {
+							Product fetchedProduct = this.ProductRepository.findById(productId)
+									.orElseThrow(() -> new UserNotFound("Product Not found with id " + productId));
+							 this.ProductRepository.delete(fetchedProduct);
+						}
+						else
+							throw new PassworWrongException("Wrong password");
+					}
+					else
+						throw new UserNotFound("Admin not found with email" + email);
+				}
+				
+				//update product
+				@PutMapping("/{email}/{password}/edit/{productId}")
+				public Product EditProduct (@RequestBody Product product,@PathVariable(value = "productId") long productId,@PathVariable(value = "email") String email,@PathVariable(value = "password") String password) 
+				{
+				List<users> allusers = UserRepository.findAll();
+				short adminVarified=0;
+				users admin = new users();
+				for(int i=0;i<allusers.size();i++) {
+					users tempUser=allusers.get(i);
+					if(email.equals(tempUser.getEmail())&& tempUser.getType().equals("admin")) {
+						adminVarified=1;
+						 admin=tempUser;
+						break;
+					}
+				}
+				if(adminVarified==1) {
+					if(admin.getPassword().equals(password)) {
+						if(product.getQuantity()>0) {
+							Product fetchedProduct=this.ProductRepository.findById(productId).orElseThrow(() -> new UserNotFound("Product Not found with id " + productId));
+							if(product.getQuantity()<1)
+								this.ProductRepository.delete(fetchedProduct);
+							else
+								fetchedProduct.setQuantity(product.getQuantity());
+							return fetchedProduct;
+						}
+						else
+							throw new SpecifyQuantityException("Qauntity cannot be less than 0");
+					}
+					else
+						throw new PassworWrongException("Wrong password");
+				}
+				else
+					throw new UserNotFound("Admin not found with email" + email);
+			}
+					
 }

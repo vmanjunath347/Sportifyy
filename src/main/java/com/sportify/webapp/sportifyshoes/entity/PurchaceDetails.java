@@ -17,16 +17,16 @@ public class PurchaceDetails {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private long id;
 	
-	@Column(name="user id")
+	@Column(name="userid")
 	private long userId;
 	
-	@Column(name="user email")
+	@Column(name="useremail")
 	private String userEmail;
 	
-	@Column(name="product id")
+	@Column(name="productid")
 	private long productId;
 	
-	@Column(name="brand name")
+	@Column(name="brandname")
 	private String brand;
 	
 	@Column(name="size")

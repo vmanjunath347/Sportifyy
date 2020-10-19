@@ -28,13 +28,6 @@ public class UserController {
 		@Autowired
        private UserRepository UserRepository;
 		
-		// GET all users
-//		@GetMapping"/admin/{password}/users")
-//		public List<users> getallUsers(@PathVariable(value = "password") String adminPassword) {
-//			users Admin =  this.UserRepository.findById((long) 1);	
-//			if(Admin.getPassword().equals(adminPassword))
-//				return this.UserRepository.findAll();
-//		}
 		
 		// register as user or admin
 		@PostMapping("/user")
@@ -125,7 +118,7 @@ public class UserController {
 				throw new UserNotFound("Admin not found with email" + email);
 		}
 		
-		// update a product
+		// update a user
 		@PutMapping("/{userid}/{oldpassword}")
 		public users updatePassword(@RequestBody users user, @PathVariable(value = "userid") long userid, @PathVariable(value = "oldpassword") String oldpassword) {
 			// 1. find a record / product

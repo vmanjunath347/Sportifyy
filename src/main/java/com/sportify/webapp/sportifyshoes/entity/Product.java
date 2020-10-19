@@ -8,15 +8,15 @@ import javax.persistence.Table;
 import javax.persistence.Entity;
 
 
-@Entity
+@Entity 
 @Table(name="Product")
 public class Product {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	private long id;
+	private long productId;
 	
-	@Column(name="brand name")
+	@Column(name="brandname")
 	private String brand;
 	
 	@Column(name="size")
@@ -30,9 +30,9 @@ public class Product {
 	
 	public Product() {}
 
-	public Product(long id, String brand, int size, long quantity, String gender) {
+	public Product(long productId, String brand, int size, long quantity, String gender) {
 		super();
-		this.id = id;
+		this.productId = productId;
 		this.brand = brand;
 		this.size = size;
 		this.quantity = quantity;
@@ -40,11 +40,11 @@ public class Product {
 	}
 
 	public long getId() {
-		return id;
+		return productId;
 	}
 
 	public void setId(long id) {
-		this.id = id;
+		this.productId = productId;
 	}
 
 	public String getBrand() {
